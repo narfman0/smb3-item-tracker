@@ -24,8 +24,8 @@ init:
 	pip install -r .
 
 pyinstaller: clean
-	pyinstaller --noconfirm --onefile --console \
-		-n smb3itemtracker --uac-admin \
+	pyinstaller --noconfirm --onefile --windowed \
+		-n smb3itemtracker \
 		smb3itemtracker.py
 	cp -r img/ dist/
 	cp README.* dist/

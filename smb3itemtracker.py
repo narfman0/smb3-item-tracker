@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import configparser
 import tkinter as tk
 from tkinter import messagebox
 
@@ -19,10 +20,23 @@ class App(tk.Frame):
         super().__init__(master)
         self.pack()
         self.create_widgets()
+        self.init_starting_items()
 
     def create_widgets(self):
         self.inventory = Inventory(self)
         self.item_selector = ItemSelector(self, self.inventory)
+
+    def init_starting_items(self):
+        try:
+            config = configparser.ConfigParser()
+            config.read("settings.ini")
+            for starting_item_str in config.get("default", "starting_items").split(","):
+                for item_button in self.item_selector.item_buttons:
+                    if item_button.item.name == starting_item_str:
+                        item_button.clicked()
+        except Exception as e:
+            # if the format is wonky or for whatever reason, lets just continue
+            print(e)
 
 
 class Inventory(tk.Frame):
@@ -111,6 +125,21 @@ class ItemSelector(tk.Frame):
             self, Item("tanukisuit"), (1, 4), self.inventory
         )
         self.anchor = AddItemButton(self, Item("anchor"), (1, 5), self.inventory)
+        self.item_buttons = [
+            self.star,
+            self.pwing,
+            self.hammer,
+            self.musicbox,
+            self.cloud,
+            self.whistle,
+            self.leaf,
+            self.mushroom,
+            self.fireflower,
+            self.frogsuit,
+            self.hammersuit,
+            self.tanukisuit,
+            self.anchor,
+        ]
         oof_img = tk.PhotoImage(file="img/oof.gif")
         self.clear = tk.Button(self, image=oof_img, command=self.clear_inventory)
         self.clear.image = oof_img
@@ -122,6 +151,7 @@ class ItemSelector(tk.Frame):
                 "Clear inventory?", "Are you sure? There is no undo."
             ):
                 self.inventory.clear()
+                self.master.init_starting_items()
 
 
 class Item:

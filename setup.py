@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="smb3-item-tracker",
-    version="1.0.0",
+    version="1.0.1",
     description=("UI to handle tracking inventory in SMB3"),
     classifiers=[
         "Development Status :: 4 - Beta",

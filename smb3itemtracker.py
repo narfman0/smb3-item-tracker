@@ -15,11 +15,28 @@ from tkinter import messagebox
 """
 
 
+class Settings:
+    def __init__(self):
+        self.skip_prompts = False
+        self.starting_item_strs = []
+        try:
+            config = configparser.ConfigParser()
+            config.read("settings.ini")
+            self.skip_prompts = config.getboolean(
+                "default", "skip_prompts", fallback=False
+            )
+            self.starting_item_strs = config.get("default", "starting_items").split(",")
+        except Exception as e:
+            # if the format is wonky or for whatever reason, lets just continue
+            print(e)
+
+
 class App(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.pack()
         self.create_widgets()
+        self.settings = Settings()
         self.init_starting_items()
 
     def create_widgets(self):
@@ -27,16 +44,10 @@ class App(tk.Frame):
         self.item_selector = ItemSelector(self, self.inventory)
 
     def init_starting_items(self):
-        try:
-            config = configparser.ConfigParser()
-            config.read("settings.ini")
-            for starting_item_str in config.get("default", "starting_items").split(","):
-                for item_button in self.item_selector.item_buttons:
-                    if item_button.item.name == starting_item_str:
-                        item_button.clicked()
-        except Exception as e:
-            # if the format is wonky or for whatever reason, lets just continue
-            print(e)
+        for starting_item_str in self.settings.starting_item_strs:
+            for item_button in self.item_selector.item_buttons:
+                if item_button.item.name == starting_item_str:
+                    item_button.clicked()
 
 
 class Inventory(tk.Frame):
@@ -147,7 +158,7 @@ class ItemSelector(tk.Frame):
 
     def clear_inventory(self):
         if len(self.inventory.items) > 0:
-            if messagebox.askokcancel(
+            if self.master.settings.skip_prompts or messagebox.askokcancel(
                 "Clear inventory?", "Are you sure? There is no undo."
             ):
                 self.inventory.clear()
@@ -193,7 +204,7 @@ class AddItemButton(tk.Button):
 
 
 def quit():
-    if len(app.inventory.items) > 0:
+    if not app.settings.skip_prompts and len(app.inventory.items) > 0:
         message = "Are you sure?\nAll your progress will be lost."
         if not messagebox.askokcancel("Quit?", message, icon="warning"):
             return
@@ -201,25 +212,12 @@ def quit():
 
 
 if __name__ == "__main__":
+    global app
     root = tk.Tk()
     icon = tk.PhotoImage(file="img/6.gif")
     root.tk.call("wm", "iconphoto", root._w, icon)
     root.title("SMB3 Item Tracker")
     root.resizable(0, 0)
     app = App(master=root)
-
-    anchor = Item("anchor")
-    cloud = Item("cloud")
-    fireflower = Item("fireflower")
-    frogsuit = Item("frogsuit")
-    hammer = Item("hammer")
-    hammersuit = Item("hammersuit")
-    leaf = Item("leaf")
-    mushroom = Item("mushroom")
-    musicbox = Item("musicbox")
-    pwing = Item("pwing")
-    tanukisuit = Item("tanukisuit")
-    whistle = Item("whistle")
-
     root.protocol("WM_DELETE_WINDOW", quit)
     app.mainloop()

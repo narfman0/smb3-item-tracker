@@ -1,0 +1,45 @@
+image: Visual Studio 2019
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Python310-x64"
+
+install:
+  - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - pip install -r requirements_test.txt
+
+build: off
+
+test_script:
+  - pytest --cov=smb3itemtracker --cov-report term-missing tests/
+
+after_test:
+  - pyinstaller --noconfirm --onefile --windowed -n smb3itemtracker smb3itemtracker.py
+  - cp -r img/ dist/
+  - cp README.* dist/
+  - 7z a smb3itemtracker.zip dist/*
+  - 7z rn smb3itemtracker.zip dist smb3itemtracker
+
+artifacts:
+  - path: smb3itemtracker.zip
+    name: smb3itemtracker
+
+deploy:
+  - provider: GitHub
+    tag: dev
+    release: dev
+    auth_token:
+      secure: JnxW6rOjz2K6O4QS1mWd1u9/kp9rGY4r6e/fRuMPNvE7VudB1RIou3t87k5x1aIiZ8/RU9dfI+3/GR1BdXhoqKesg3J7XUWHuJBYqitu3Cljdz1d7iUUVbhQCZp/oY4q
+    artifact: smb3itemtracker.zip
+    prerelease: true
+    on:
+      branch: main
+  - provider: GitHub
+    tag: $(APPVEYOR_REPO_TAG_NAME)
+    release: $(APPVEYOR_REPO_TAG_NAME)
+    auth_token:
+      secure: JnxW6rOjz2K6O4QS1mWd1u9/kp9rGY4r6e/fRuMPNvE7VudB1RIou3t87k5x1aIiZ8/RU9dfI+3/GR1BdXhoqKesg3J7XUWHuJBYqitu3Cljdz1d7iUUVbhQCZp/oY4q
+    artifact: smb3itemtracker.zip
+    prerelease: true
+    on:
+      APPVEYOR_REPO_TAG: true

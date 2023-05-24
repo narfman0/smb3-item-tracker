@@ -18,6 +18,6 @@ Download the zip and extract to your favorite directory.
 License
 -------
 
-Copyright (c) 2023 Lui_, Jon Robison
+Copyright (c) 2023 Lui_, narfman0
 
 See LICENSE for details

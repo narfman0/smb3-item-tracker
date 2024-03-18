@@ -15,20 +15,18 @@ from tkinter import messagebox
 """
 
 
-class Settings:
-    def __init__(self):
-        self.skip_prompts = False
-        self.starting_item_strs = []
-        try:
-            config = configparser.ConfigParser()
-            config.read("settings.ini")
-            self.skip_prompts = config.getboolean(
-                "default", "skip_prompts", fallback=False
-            )
-            self.starting_item_strs = config.get("default", "starting_items").split(",")
-        except Exception as e:
-            # if the format is wonky or for whatever reason, lets just continue
-            print(e)
+big_buttons = False
+skip_prompts = False
+starting_item_strs = []
+try:
+    config = configparser.ConfigParser()
+    config.read("settings.ini")
+    big_buttons = config.getboolean("default", "big_buttons", fallback=False)
+    skip_prompts = config.getboolean("default", "skip_prompts", fallback=False)
+    starting_item_strs = config.get("default", "starting_items").split(",")
+except Exception as e:
+    # if the format is wonky or for whatever reason, lets just continue
+    print(e)
 
 
 class App(tk.Frame):
@@ -36,7 +34,6 @@ class App(tk.Frame):
         super().__init__(master)
         self.pack()
         self.create_widgets()
-        self.settings = Settings()
         self.init_starting_items()
 
     def create_widgets(self):
@@ -44,7 +41,7 @@ class App(tk.Frame):
         self.item_selector = ItemSelector(self, self.inventory)
 
     def init_starting_items(self):
-        for starting_item_str in self.settings.starting_item_strs:
+        for starting_item_str in starting_item_strs:
             for item_button in self.item_selector.item_buttons:
                 if item_button.item.name == starting_item_str:
                     item_button.clicked()
@@ -158,7 +155,7 @@ class ItemSelector(tk.Frame):
 
     def clear_inventory(self):
         if len(self.inventory.items) > 0:
-            if self.master.settings.skip_prompts or messagebox.askokcancel(
+            if skip_prompts or messagebox.askokcancel(
                 "Clear inventory?", "Are you sure? There is no undo."
             ):
                 self.inventory.clear()
@@ -192,8 +189,13 @@ class InventoryItemButton(tk.Button):
 
 
 class AddItemButton(tk.Button):
+
     def __init__(self, master, item, coords, inventory):
-        super().__init__(master, image=item.img_small, command=self.clicked)
+        super().__init__(
+            master,
+            image=item.img_big if big_buttons else item.img_small,
+            command=self.clicked,
+        )
         self.grid(row=coords[0], column=coords[1])
         self.item = item
         self.inventory = inventory
@@ -204,7 +206,7 @@ class AddItemButton(tk.Button):
 
 
 def quit():
-    if not app.settings.skip_prompts and len(app.inventory.items) > 0:
+    if not skip_prompts and len(app.inventory.items) > 0:
         message = "Are you sure?\nAll your progress will be lost."
         if not messagebox.askokcancel("Quit?", message, icon="warning"):
             return
